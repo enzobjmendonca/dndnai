@@ -10,6 +10,7 @@ class DM_Agent:
         config = {
             "tools": [game_state.add_history, game_state.add_player, game_state.add_location, game_state.add_npc,
                      game_state.update_player_state, game_state.update_npc_state, game_state.update_location_state,
+                     game_state.get_player_state, game_state.get_location_state, game_state.get_npc_state,
                      game_state.get_all_players, game_state.get_all_npcs, game_state.get_all_locations, game_state.get_history, 
                      game_state.roll_dice],
         }
@@ -18,7 +19,7 @@ class DM_Agent:
         response = self.chat.send_message(INITIAL_PROMPT)
 
         print("\nDUNGEONS & DRAGONS")
-        
+
         response = self.chat.send_message(GAME_START_PROMPT)
         response = print(response.text)
 

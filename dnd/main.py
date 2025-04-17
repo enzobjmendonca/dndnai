@@ -16,6 +16,6 @@ while True:
     dm_response = dm.get_dm_response(player_action)
     print(f"DM Response: {dm_response}")
     game_state.print_state()
-    print(dm.get_dm_overview())
+    #print(dm.get_dm_overview())
 
    
