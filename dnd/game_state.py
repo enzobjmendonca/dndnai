@@ -1,16 +1,17 @@
-from utils import extract_json_from_response
+from utils import DICE_PATTERN
 from data.player import Player
 from data.npc import Npc
 from data.location import Location
 
 
 class GameState:
-    def __init__(self):
+    def __init__(self, debug = False):
         self.players = {}
         self.locations = {}
         self.npcs = {}
         self.history = []
         self.current_location = None
+        self.debug = debug
 
 
     def add_player(self, player_name: str) -> bool:
@@ -30,7 +31,8 @@ class GameState:
         Returns: 
             bool: True if the player was added successfully, False if the player already exists.
         """
-        print(f"Adding player: {player_name}")
+        if self.debug:
+            print(f"Adding player: {player_name}")
         if player_name not in self.players:
             self.players[player_name] = Player(player_name)
             return True
@@ -48,7 +50,8 @@ class GameState:
             dict or None: The state of the player as a dictionary if the player exists,
                           otherwise None.
         """
-        print(f"Getting state for player: {player_name}")
+        if self.debug:
+            print(f"Getting state for player: {player_name}")
         return self.players[player_name].to_dict() if player_name in self.players else None
 
     def update_player_state(self, player_name: str, new_state: dict) -> bool:
@@ -65,14 +68,16 @@ class GameState:
         Prints:
             A message if the specified player is not found in the game state.
         """
-        print(f"Updating state for player: {player_name} => {new_state}")
+        if self.debug:
+            print(f"Updating state for player: {player_name} => {new_state}")
         if player_name in self.players:
             current_state_dict = self.players[player_name].to_dict()
             current_state_dict.update(new_state)
             self.players[player_name].from_dict(current_state_dict)
             return True
         else:
-            print('Player not found in game state.')
+            if self.debug:
+                print('Player not found in game state.')
             return False
     
     def add_location(self, location_name: str, description: str) -> bool:
@@ -92,12 +97,14 @@ class GameState:
         Returns:
             bool: True if the location was added successfully, False if the location already exists.
         """
-        print(f"Adding location: {location_name}")
+        if self.debug:
+            print(f"Adding location: {location_name}")
         if location_name not in self.locations:
             self.locations[location_name] = Location(location_name, description)
             return True
         else:
-            print('Location already exists in game state.')
+            if self.debug:
+                print('Location already exists in game state.')
             return False
 
     def get_location_state(self, location_name: str) -> dict:
@@ -111,7 +118,8 @@ class GameState:
             dict: A dictionary representation of the location's state if the location exists.
             None: If the specified location does not exist.
         """
-        print(f"Getting state for location: {location_name}")
+        if self.debug:
+            print(f"Getting state for location: {location_name}")
         return self.locations[location_name].to_dict() if location_name in self.locations else None
     
     def update_location_state(self, location_name: str, new_state: dict) -> bool:
@@ -126,7 +134,8 @@ class GameState:
         Returns: 
             bool: True if the location state was updated successfully, False otherwise.
         """
-        print(f"Updating state for location: {location_name} => {new_state}")
+        if self.debug:
+            print(f"Updating state for location: {location_name} => {new_state}")
         if location_name in self.locations:
             current_state_dict = self.locations[location_name].to_dict()
             current_state_dict.update(new_state)
@@ -153,7 +162,8 @@ class GameState:
         Returns: 
             bool: True if the npc was added successfully, False if the npc already exists.
         """
-        print(f"Adding npc: {npc_name}")
+        if self.debug:
+            print(f"Adding npc: {npc_name}")
         if npc_name not in self.npcs:
             self.npcs[npc_name] = Npc(npc_name)
             return True
@@ -171,7 +181,8 @@ class GameState:
             dict or None: The state of the npc as a dictionary if the npc exists,
                           otherwise None.
         """
-        print(f"Getting state for npc: {npc_name}")
+        if self.debug:
+            print(f"Getting state for npc: {npc_name}")
         return self.npcs[npc_name].to_dict() if npc_name in self.npcs else None
 
     def update_npc_state(self, npc_name: str, new_state: dict) -> bool:
@@ -188,14 +199,16 @@ class GameState:
         Prints:
             A message if the specified npc is not found in the game state.
         """
-        print(f"Updating state for npc: {npc_name} => {new_state}")
+        if self.debug:
+            print(f"Updating state for npc: {npc_name} => {new_state}")
         if npc_name in self.npcs:
             current_state_dict = self.npcs[npc_name].to_dict()
             current_state_dict.update(new_state)
             self.npcs[npc_name].from_dict(current_state_dict)
             return True
         else:
-            print('Npc not found in game state.')
+            if self.debug:
+                print('Npc not found in game state.')
             return False
     
     def add_history(self, action: str) -> None:
@@ -205,23 +218,80 @@ class GameState:
         Args:
             action (str): The action to be added to the history.
         """
-        print(f"Adding action to history: {action}")
+        if self.debug:
+            print(f"Adding action to history: {action}")
         self.history.append(action)
     
-    def roll_dice(self, sides: int) -> int:
+    def roll_dice(dice_string: str) -> int:
         """
-        Rolls a dice with the specified number of sides.
+        Rolls dice based on standard D&D notation string.
 
         Args:
-            sides (int): The number of sides on the dice.
+            dice_string: A string representing the dice roll (e.g., "d20", "2d6", "1d8+4", "3d10-1").
+                        Whitespace around components is ignored. Case-insensitive 'd'.
 
         Returns:
-           
-            int: The result of the dice roll.
+            The integer result of the dice roll.
+
+        Raises:
+            ValueError: If the dice_string format is invalid or sides are non-positive.
         """
-        print(f"Rolling a D{str(sides)} dice.")
-        number = input(f"Please roll a D{sides} dice and type the result: ")
-        return int(number)
+        dice_string = dice_string.lower().strip()
+        match = DICE_PATTERN.match(dice_string)
+
+        if not match:
+            raise ValueError(f"Invalid dice string format: '{dice_string}'")
+
+        num_dice_str, sides_str, operator, modifier_str = match.groups()
+
+        # Determine the number of dice (default to 1 if not specified)
+        num_dice = int(num_dice_str) if num_dice_str else 1
+
+        # Determine the number of sides
+        try:
+            sides = int(sides_str)
+            if sides <= 0:
+                raise ValueError("Number of sides must be positive.")
+        except ValueError:
+            raise ValueError(f"Invalid number of sides: '{sides_str}'")
+
+        # Determine the modifier (default to 0 if not specified)
+        modifier = 0
+        if operator and modifier_str:
+            try:
+                mod_value = int(modifier_str)
+                if operator == '-':
+                    modifier = -mod_value
+                else: # operator == '+'
+                    modifier = mod_value
+            except ValueError:
+                raise ValueError(f"Invalid modifier value: '{modifier_str}'")
+
+        # --- Perform the rolls ---
+        total_roll = 0
+        individual_rolls = [] # Keep track for logging/debugging if needed
+
+        if num_dice <= 0:
+            print(f"Attempted to roll zero or negative dice ({num_dice}). Resulting in 0 base roll.")
+            # Continue to just add the modifier if applicable
+        else:
+            for _ in range(num_dice):
+                roll = int(input(f"Roll a d{sides}: "))
+                individual_rolls.append(roll)
+                total_roll += roll
+
+        final_result = total_roll + modifier
+
+        # Log the detailed roll
+        roll_details = f"{num_dice}d{sides}"
+        if modifier > 0:
+            roll_details += f"+{modifier}"
+        elif modifier < 0:
+            roll_details += f"{modifier}" # Sign is already included
+
+        print(f"Rolling {dice_string} -> {roll_details}: Rolls={individual_rolls}, BaseTotal={total_roll}, Modifier={modifier}, FinalResult={final_result}")
+
+        return final_result
 
     def get_all_players(self) -> dict:
         """
@@ -286,4 +356,5 @@ class GameState:
             print(npc)
             print(self.npcs[npc].to_dict())
         for history in self.history:
+            print("**********************************************")
             print(history)

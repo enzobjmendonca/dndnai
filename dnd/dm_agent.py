@@ -18,8 +18,7 @@ class DM_Agent:
         response = self.chat.send_message(INITIAL_PROMPT)
 
         print("\nDUNGEONS & DRAGONS")
-        print(response.text)
-
+        
         response = self.chat.send_message(GAME_START_PROMPT)
         response = print(response.text)
 
