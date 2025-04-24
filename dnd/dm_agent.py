@@ -1,5 +1,5 @@
 from google import genai
-from utils import format_prompt, INITIAL_PROMPT, GAME_START_PROMPT
+from utils import format_prompt, DM_INITIAL_PROMPT, GAME_START_PROMPT
 from game_state import GameState
 
 class DM_Agent:
@@ -8,21 +8,23 @@ class DM_Agent:
         self.game_state = game_state
         
         config = {
-            "tools": [game_state.add_history, game_state.add_player, game_state.add_location, game_state.add_npc,
-                     game_state.update_player_state, game_state.update_npc_state, game_state.update_location_state,
-                     game_state.get_player_state, game_state.get_location_state, game_state.get_npc_state,
+            "tools": [game_state.get_player_state, game_state.get_location_state, game_state.get_npc_state,
                      game_state.get_all_players, game_state.get_all_npcs, game_state.get_all_locations, game_state.get_history, 
                      game_state.roll_dice],
         }
 
         self.chat = self.client.chats.create(model="gemini-2.0-flash", config=config)
-        response = self.chat.send_message(INITIAL_PROMPT)
-
+        response = self.chat.send_message(DM_INITIAL_PROMPT)
+        response = print(response.text)
+        print("\n\n")
+        print("**********************************************")
         print("\nDUNGEONS & DRAGONS")
 
+    def start_game(self):
         response = self.chat.send_message(GAME_START_PROMPT)
-        response = print(response.text)
-
+        print(response.text)
+        return response.text
+    
     def set_game_state(self, game_state):
         self.game_state = game_state
 

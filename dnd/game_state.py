@@ -211,16 +211,16 @@ class GameState:
                 print('Npc not found in game state.')
             return False
     
-    def add_history(self, action: str) -> None:
+    def add_history(self, log_entry: str) -> None:
         """
-        Adds an action to the game history.
+        Adds an record to the game history.
 
         Args:
-            action (str): The action to be added to the history.
+            log_entry (str): The new record to be added to the history.
         """
         if self.debug:
-            print(f"Adding action to history: {action}")
-        self.history.append(action)
+            print(f"Adding record to history: {log_entry}")
+        self.history.append(log_entry)
     
     def roll_dice(dice_string: str) -> int:
         """
