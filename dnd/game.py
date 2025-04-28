@@ -2,7 +2,7 @@ from dm_agent import DM_Agent
 from player_agent import PlayerAgent
 from game_state import GameState
 
-API_KEY = 'AIzaSyDKNXNgOFmf0rlml0uSrX29aiUY1VkIUpU'
+API_KEY = ''
 
 class Game():
     def __init__(self, name: str):
