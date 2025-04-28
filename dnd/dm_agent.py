@@ -1,5 +1,5 @@
 from google import genai
-from utils import format_prompt, INITIAL_PROMPT, GAME_START_PROMPT
+from utils import format_prompt, DM_INITIAL_PROMPT, GAME_START_PROMPT
 from game_state import GameState
 
 class DM_Agent:
@@ -21,6 +21,7 @@ class DM_Agent:
 
         print("\nDUNGEONS & DRAGONS")
 
+    def start_game(self):
         response = self.chat.send_message(GAME_START_PROMPT)
         print(response.text)
         self.game_state.add_history(response.text)
