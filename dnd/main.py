@@ -1,11 +1,15 @@
 import logging
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 from game import Game
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 log_dir = "logs"
@@ -22,17 +26,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Replace with your actual API key
-API_KEY = ''
+# Get API key from environment
+API_KEY = os.getenv('API_KEY', '')
+if not API_KEY:
+    logger.warning("API_KEY not found in environment variables")
 
 app = FastAPI()
+
+# Configure CORS
+allowed_origins = os.getenv('ALLOWED_ORIGINS', '*').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific origins if needed
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 game_map = {}
 
 class PlayerAction(BaseModel):
@@ -185,5 +195,7 @@ def get_game_checksum(game_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    logger.info("Starting D&D server")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv('PORT', 8000))
+    host = os.getenv('HOST', '0.0.0.0')
+    logger.info(f"Starting D&D server on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
