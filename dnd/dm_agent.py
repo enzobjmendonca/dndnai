@@ -1,6 +1,6 @@
 import logging
 from google import genai
-from utils import format_prompt, DM_INITIAL_PROMPT
+from utils import format_prompt, DM_INITIAL_PROMPT, GAME_START_PROMPT
 from game_state import GameState
 
 logger = logging.getLogger(__name__)
@@ -19,21 +19,21 @@ class DM_Agent:
                          game_state.get_all_players, game_state.get_all_npcs, game_state.get_all_locations, game_state.get_history],
             }
 
-            self.chat = self.client.chats.create(model="gemini-2.0-flash", config=config)
+            self.chat = self.client.chats.create(model="gemini-2.5-flash-preview-04-17", config=config)
             logger.info("Successfully initialized DM_Agent")
         except Exception as e:
             logger.error(f"Error initializing DM_Agent: {str(e)}", exc_info=True)
             raise
     
     def start_game(self):
-        response = self.chat.send_message(INITIAL_PROMPT)
+        response = self.chat.send_message(DM_INITIAL_PROMPT)
 
         print("\nDUNGEONS & DRAGONS")
 
         response = self.chat.send_message(GAME_START_PROMPT)
         print(response.text)
         self.game_state.add_history(response.text)
-        
+
     def set_game_state(self, game_state):
         try:
             logger.info("Setting new game state")
