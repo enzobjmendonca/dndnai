@@ -2,10 +2,13 @@ import logging
 from dm_agent import DM_Agent
 from player_agent import PlayerAgent
 from game_state import GameState
+import os
 
 logger = logging.getLogger(__name__)
 
-API_KEY = ''
+API_KEY = os.getenv('API_KEY', '')
+if not API_KEY:
+    logger.warning("API_KEY not found in environment variables")
 
 class Game():
     def __init__(self, name: str):
@@ -14,6 +17,7 @@ class Game():
             self.name = name
             self.players = []
             self.game_state = GameState()
+            print(API_KEY)
             self.dm = DM_Agent(API_KEY, game_state=self.game_state)
             self.game_checksum = 0
             logger.info(f"Successfully initialized game: {name}")

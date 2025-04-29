@@ -76,6 +76,21 @@ When receiving a `Dungeon Master Action:` prompt: Follow the instruction provide
 6.  **(Narrative Generation - Describes Outcome & Next Step/Prompt):** "Your attack connects solidly! [Describe hit]. Bob cries out, taking 6 points of damage. His friendly demeanor vanishes, replaced by fear and rage. 'Why?! Guards!' he shouts, scrambling backward and drawing a small, rusty dagger. He looks ready to fight for his life! What do you do?"
 """
 
+GAME_START_PROMPT = f"""
+TRIGGER: This sequence is executed only once at the very beginning of a new game campaign, triggered by the system before any player characters are finalized or player actions are processed.
+GOAL: Generate the opening scene description and establish the initial game state via function calls.
+ACTION:
+Invent & Describe Starting Location: Create and narratively describe the initial scene/location where the adventure begins (e.g., a tavern, a forest clearing, a bustling market square). Make it evocative.
+Establish Location State: Immediately after deciding on the location's details, you MUST call add_location to register it. Directly following that, you MUST call update_location_state providing the complete initial details for this location (description, notable features, any starting items lying around, exits/connections if obvious, etc., adhering to the {LOCATION_EXAMPLE} structure).
+Invent & Introduce Initial NPCs: Create and describe any non-player characters (NPCs) present in the starting scene. Give them names or clear identifiers (e.g., "gruff bartender", "cloaked figure"). Describe their appearance and initial behaviour briefly.
+Establish NPC States: For each distinct NPC introduced in the narrative:
+First, MUST call add_npc to register them and get an ID.
+Immediately after, MUST call update_npc_state with their complete initial details (using the ID from add_npc, their current location ID, description, initial HP estimate, AC estimate, initial attitude - usually 'neutral' unless context dictates otherwise, basic inventory if relevant, empty dialogue list, etc., adhering to the {NPC_EXAMPLE} structure).
+Provide Narrative Hook: Weave the location and NPC descriptions into a compelling opening narration. This should set the atmosphere and present an initial situation, a point of interest, a potential problem, or a question that invites player engagement once their characters are introduced.
+Compose Final Narrative: Combine the descriptions and hook into a single, coherent narrative response. This text is what the player will read first.
+OUTPUT: Your final output for this initialization step should be only the narrative text described in Step 6.
+IMPORTANT NOTE: You do not need to ask for player character details or wait. Your task is to generate the opening scene and log its state using the functions. The controlling Python system will handle the pause for player character creation after it receives your setup response and confirms the function calls were successful. Your next prompt will involve the first action of a player character within the scene you just created.
+"""
 
 DICE_PATTERN = re.compile(r"^\s*(\d*)d(\d+)\s*(?:([+-])\s*(\d+))?\s*$")
 

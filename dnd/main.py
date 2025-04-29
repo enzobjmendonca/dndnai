@@ -26,10 +26,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Get API key from environment
-API_KEY = os.getenv('API_KEY', '')
-if not API_KEY:
-    logger.warning("API_KEY not found in environment variables")
 
 app = FastAPI()
 
