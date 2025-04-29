@@ -18,6 +18,7 @@ class Game():
             self.players = []
             self.game_state = GameState()
             self.dm = DM_Agent(API_KEY, game_state=self.game_state)
+            self.dm.start_game()
             self.game_checksum = 0
             logger.info(f"Successfully initialized game: {name}")
         except Exception as e:

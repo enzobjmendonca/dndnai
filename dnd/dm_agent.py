@@ -24,7 +24,16 @@ class DM_Agent:
         except Exception as e:
             logger.error(f"Error initializing DM_Agent: {str(e)}", exc_info=True)
             raise
+    
+    def start_game(self):
+        response = self.chat.send_message(INITIAL_PROMPT)
 
+        print("\nDUNGEONS & DRAGONS")
+
+        response = self.chat.send_message(GAME_START_PROMPT)
+        print(response.text)
+        self.game_state.add_history(response.text)
+        
     def set_game_state(self, game_state):
         try:
             logger.info("Setting new game state")
