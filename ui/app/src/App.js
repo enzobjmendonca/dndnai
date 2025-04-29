@@ -6,6 +6,14 @@ import { Textarea } from "./components/ui/textarea";
 import { Pencil, X } from "lucide-react";
 import { Switch } from "./components/ui/switch";
 import * as api from './services/api';
+import { withErrorLogging } from './services/logger';
+
+// Wrap API calls with error logging
+const getGameHistory = withErrorLogging(api.getGameHistory, { operation: 'getGameHistory' });
+const getPlayerState = withErrorLogging(api.getPlayerState, { operation: 'getPlayerState' });
+const sendPlayerAction = withErrorLogging(api.sendPlayerAction, { operation: 'sendPlayerAction' });
+const updatePlayer = withErrorLogging(api.updatePlayer, { operation: 'updatePlayer' });
+const getGameChecksum = withErrorLogging(api.getGameChecksum, { operation: 'getGameChecksum' });
 
 export default function ChatUI() {
   const [userInput, setUserInput] = useState("");
@@ -35,7 +43,7 @@ export default function ChatUI() {
     setIsPolling(true);
 
     try {
-      const response = await api.getGameChecksum(gameId);
+      const response = await getGameChecksum(gameId);
       console.log('Polling response:', response);
       console.log('Current checksum:', gameChecksumRef.current);
       console.log('New checksum:', response.game_checksum);
@@ -54,7 +62,7 @@ export default function ChatUI() {
 
   const fetchInitialChecksum = async () => {
     try {
-      const response = await api.getGameChecksum(gameId);
+      const response = await getGameChecksum(gameId);
       console.log('Initial checksum response:', response);
       if (response.game_checksum) {
         gameChecksumRef.current = response.game_checksum;
@@ -81,13 +89,11 @@ export default function ChatUI() {
     setIsJoiningGame(true);
     setModelResponse('Wait while the DM prepares the game!');
     try {
-      // Fetch game history
-      const historyResponse = await api.getGameHistory(gameId);
+      const historyResponse = await getGameHistory(gameId);
       setModelResponse(historyResponse.history.join('\n') || 'No response from DM.');
-      updatePlayerState();
+      await updatePlayerState();
       setShowGameIdDialog(false);
       
-      // Start polling after joining game
       await fetchInitialChecksum();
       pollingIntervalRef.current = setInterval(pollGameUpdates, 10000);
     } catch (error) {
@@ -103,18 +109,19 @@ export default function ChatUI() {
     
     setIsLoadingPlayer(true);
     try {
-      // Fetch player state
-      const playerResponse = await api.getPlayerState(playerName, gameId);
+      const playerResponse = await getPlayerState(playerName, gameId);
       if (playerResponse && playerResponse.player_state) {
         console.log(playerResponse);
         setPlayer(playerResponse.player_state);
         setPlayerNotFound(false);
-        playerResponse.player_location.npcs = [];
-        playerResponse.all_npcs_in_location.forEach(npc => {
-          playerResponse.player_location.npcs.push(npc);
-        });
-        setLocationData(playerResponse.player_location);
-        console.log(locationData);
+        if (playerResponse.player_location) {
+          playerResponse.player_location.npcs = [];
+          playerResponse.all_npcs_in_location.forEach(npc => {
+            playerResponse.player_location.npcs.push(npc);
+          });
+          setLocationData(playerResponse.player_location);
+          console.log(locationData);
+        }
       } else {
         setPlayerNotFound(true);
       }
@@ -126,13 +133,18 @@ export default function ChatUI() {
     }
   };
 
-
   const handleSend = async () => {
     if (isSendingAction) return;
     
     setIsSendingAction(true);
     try {
-      await api.sendPlayerAction(gameId, playerName, userInput);
+      let actionString = "";
+      if (isDm) {
+        actionString = "Dungeon Master Action: " + userInput;
+      } else {
+        actionString = playerName + " Action: " + userInput;
+      }
+      await sendPlayerAction(gameId, playerName, actionString);
       setUserInput("");
       await updateHistory();
     } catch (error) {
@@ -145,7 +157,7 @@ export default function ChatUI() {
   
   const updateHistory = async () => {
     try {
-      const response = await api.getGameHistory(gameId);
+      const response = await getGameHistory(gameId);
       setModelResponse(response.history.join('\n') || 'No response from DM.');
       updatePlayerState();
     } catch (error) {
@@ -193,7 +205,7 @@ export default function ChatUI() {
     
     setIsSaving(true);
     try {
-      await api.updatePlayer(gameId, playerName, player);
+      await updatePlayer(gameId, playerName, player);
       setHasChanges(false);
       setModelResponse(modelResponse + '\nPlayer data updated successfully!');
     } catch (error) {
