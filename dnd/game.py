@@ -17,7 +17,6 @@ class Game():
             self.name = name
             self.players = []
             self.game_state = GameState()
-            print(API_KEY)
             self.dm = DM_Agent(API_KEY, game_state=self.game_state)
             self.game_checksum = 0
             logger.info(f"Successfully initialized game: {name}")
