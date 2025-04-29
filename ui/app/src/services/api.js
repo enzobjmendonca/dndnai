@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://dndnai.onrender.com';
 
 export async function addPlayer(gameId, playerName) {
   const response = await fetch(`${API_URL}/add_player/`, {
